@@ -17,6 +17,8 @@ from PyQt5.QtGui import QFont, QIcon
 
 from core.config import get_config_manager
 from core.logging_config import get_logging_manager
+from .script_manager import ScriptManager, ScriptExecution
+from .script_dialog import ScriptDialog
 
 
 class MainWindow(QMainWindow):
@@ -34,6 +36,10 @@ class MainWindow(QMainWindow):
 
         self.logger.info("Initializing main window...")
 
+        # Initialize script manager
+        self.script_manager = ScriptManager()
+        self._connect_script_manager()
+
         # Window setup
         self.setWindowTitle("Automation Hub")
         self.setGeometry(100, 100, 1200, 800)
@@ -43,7 +49,16 @@ class MainWindow(QMainWindow):
         self._create_central_widget()
         self._create_status_bar()
 
+        # Update stats
+        self._update_dashboard_stats()
+
         self.logger.info("Main window initialized successfully")
+
+    def _connect_script_manager(self):
+        """Connect script manager signals."""
+        self.script_manager.execution_started.connect(self._on_execution_started)
+        self.script_manager.execution_finished.connect(self._on_execution_finished)
+        self.script_manager.output_received.connect(self._on_script_output)
 
     def _create_menu_bar(self):
         """Create the menu bar."""
@@ -319,17 +334,11 @@ class MainWindow(QMainWindow):
 
     def _populate_scripts_list(self):
         """Populate the scripts list with available automation modules."""
-        scripts = [
-            "Desktop RPA - Window Automation",
-            "Excel - Data Processing",
-            "Excel - Report Generation",
-            "Outlook - Email Automation",
-            "SharePoint - File Management",
-            "Word - Document Generation"
-        ]
+        scripts = self.script_manager.get_scripts()
 
         for script in scripts:
-            item = QListWidgetItem(script)
+            item = QListWidgetItem(script.name)
+            item.setData(Qt.UserRole, script.id)  # Store script ID
             self.scripts_list.addItem(item)
 
     def _setup_log_monitoring(self):
@@ -370,23 +379,33 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "No Selection", "Please select a script to run.")
             return
 
-        script_name = current_item.text()
-        self.logger.info(f"Running script: {script_name}")
+        # Get script from manager
+        script_id = current_item.data(Qt.UserRole)
+        script = self.script_manager.get_script(script_id)
 
-        self.output_display.append(f"\n>>> Running: {script_name}")
-        self.output_display.append(f"Status: Executing...")
+        if not script:
+            QMessageBox.warning(self, "Error", "Script not found!")
+            return
 
-        self.activity_list.insertItem(0, f"Started: {script_name}")
+        # Open script dialog
+        dialog = ScriptDialog(script, self)
 
-        self.status_bar.showMessage(f"Running: {script_name}")
+        if dialog.exec_() == dialog.Accepted:
+            # Get parameters
+            parameters = dialog.get_parameters()
 
-        # TODO: Actual script execution will be implemented in script_manager
-        QMessageBox.information(
-            self,
-            "Script Execution",
-            f"Script '{script_name}' would execute here.\n\n"
-            "Full execution logic will be implemented in the script manager."
-        )
+            if dialog.is_dry_run():
+                # Dry run - just show parameters
+                params_str = "\n".join([f"  {k}: {v}" for k, v in parameters.items()])
+                QMessageBox.information(
+                    self,
+                    "Dry Run",
+                    f"Script: {script.name}\n\nParameters:\n{params_str}\n\n"
+                    "This was a dry run. Click 'Run' without 'Dry Run' checked to execute."
+                )
+            else:
+                # Actually execute
+                self.script_manager.execute_script(script, parameters)
 
     def _on_schedule_script(self):
         """Handle schedule script action."""
@@ -467,6 +486,78 @@ class MainWindow(QMainWindow):
             "<p>Corporate Desktop Automation Platform</p>"
             "<p>&copy; 2025 Automation Hub Development Team</p>"
             "<p>Built with PyQt5 and Python</p>"
+        )
+
+    def _on_execution_started(self, execution: ScriptExecution):
+        """Handle script execution start."""
+        self.output_display.append(f"\n{'=' * 60}")
+        self.output_display.append(f">>> Executing: {execution.script.name}")
+        self.output_display.append(f"Started at: {execution.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        self.output_display.append(f"{'=' * 60}\n")
+
+        self.activity_list.insertItem(0, f"▶ Running: {execution.script.name}")
+        self.status_bar.showMessage(f"Executing: {execution.script.name}")
+
+    def _on_execution_finished(self, execution: ScriptExecution):
+        """Handle script execution completion."""
+        duration = execution.get_duration()
+        status_symbol = "✓" if execution.status == 'success' else "✗"
+
+        self.output_display.append(f"\n{'-' * 60}")
+        self.output_display.append(f"{status_symbol} Execution {execution.status.upper()}")
+        self.output_display.append(f"Duration: {duration:.2f} seconds")
+        if execution.error:
+            self.output_display.append(f"Error: {execution.error}")
+        self.output_display.append(f"{'-' * 60}\n")
+
+        self.activity_list.insertItem(0, f"{status_symbol} {execution.script.name}: {execution.status}")
+        self.status_bar.showMessage(f"Execution {execution.status}: {execution.script.name}")
+
+        # Update dashboard stats
+        self._update_dashboard_stats()
+
+        # Show result dialog for errors
+        if execution.error:
+            QMessageBox.critical(
+                self,
+                "Execution Error",
+                f"Script: {execution.script.name}\n\n"
+                f"Error: {execution.error}\n\n"
+                f"Duration: {duration:.2f} seconds"
+            )
+        else:
+            QMessageBox.information(
+                self,
+                "Execution Complete",
+                f"Script: {execution.script.name}\n\n"
+                f"Status: Success\n"
+                f"Duration: {duration:.2f} seconds"
+            )
+
+    def _on_script_output(self, output: str):
+        """Handle output from script execution."""
+        self.output_display.append(output)
+        # Auto-scroll to bottom
+        self.output_display.verticalScrollBar().setValue(
+            self.output_display.verticalScrollBar().maximum()
+        )
+
+    def _update_dashboard_stats(self):
+        """Update dashboard statistics."""
+        stats = self.script_manager.get_statistics()
+        history = self.script_manager.get_execution_history(limit=1)
+
+        last_run = "Never"
+        if history:
+            last_run = history[-1].start_time.strftime('%Y-%m-%d %H:%M:%S')
+
+        self.stats_label.setText(
+            f"Total Scripts: {len(self.script_manager.get_scripts())}\n"
+            f"Total Executions: {stats['total_executions']}\n"
+            f"Successful: {stats['successful']}\n"
+            f"Failed: {stats['failed']}\n"
+            f"Success Rate: {stats['success_rate']:.1f}%\n"
+            f"Last Run: {last_run}"
         )
 
     def closeEvent(self, event):
