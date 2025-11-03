@@ -19,6 +19,8 @@ from core.config import get_config_manager
 from core.logging_config import get_logging_manager
 from .script_manager import ScriptManager, ScriptExecution
 from .script_dialog import ScriptDialog
+from .scheduler import SchedulerManager, ScheduledTask
+from .schedule_dialog import ScheduleDialog
 
 
 class MainWindow(QMainWindow):
@@ -40,6 +42,10 @@ class MainWindow(QMainWindow):
         self.script_manager = ScriptManager()
         self._connect_script_manager()
 
+        # Initialize scheduler
+        self.scheduler_manager = SchedulerManager(self.script_manager, self.config_manager)
+        self._connect_scheduler()
+
         # Window setup
         self.setWindowTitle("Automation Hub")
         self.setGeometry(100, 100, 1200, 800)
@@ -49,8 +55,9 @@ class MainWindow(QMainWindow):
         self._create_central_widget()
         self._create_status_bar()
 
-        # Update stats
+        # Update stats and refresh scheduled tasks
         self._update_dashboard_stats()
+        self._refresh_scheduled_tasks()
 
         self.logger.info("Main window initialized successfully")
 
@@ -59,6 +66,12 @@ class MainWindow(QMainWindow):
         self.script_manager.execution_started.connect(self._on_execution_started)
         self.script_manager.execution_finished.connect(self._on_execution_finished)
         self.script_manager.output_received.connect(self._on_script_output)
+
+    def _connect_scheduler(self):
+        """Connect scheduler signals."""
+        self.scheduler_manager.task_added.connect(self._on_task_added)
+        self.scheduler_manager.task_removed.connect(self._on_task_removed)
+        self.scheduler_manager.task_executed.connect(self._on_task_executed)
 
     def _create_menu_bar(self):
         """Create the menu bar."""
@@ -302,7 +315,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(label)
 
         self.scheduled_list = QListWidget()
-        self.scheduled_list.addItem("No scheduled tasks")
         layout.addWidget(self.scheduled_list)
 
         # Action buttons
@@ -312,13 +324,13 @@ class MainWindow(QMainWindow):
         add_btn.clicked.connect(self._on_schedule_script)
         button_layout.addWidget(add_btn)
 
-        edit_btn = QPushButton("Edit")
-        edit_btn.setEnabled(False)
-        button_layout.addWidget(edit_btn)
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.clicked.connect(self._refresh_scheduled_tasks)
+        button_layout.addWidget(refresh_btn)
 
-        delete_btn = QPushButton("Delete")
-        delete_btn.setEnabled(False)
-        button_layout.addWidget(delete_btn)
+        self.delete_task_btn = QPushButton("Delete")
+        self.delete_task_btn.clicked.connect(self._on_delete_task)
+        button_layout.addWidget(self.delete_task_btn)
 
         button_layout.addStretch()
 
@@ -409,12 +421,48 @@ class MainWindow(QMainWindow):
 
     def _on_schedule_script(self):
         """Handle schedule script action."""
-        QMessageBox.information(
-            self,
-            "Schedule Script",
-            "Task scheduling dialog will be implemented here.\n\n"
-            "Will integrate with APScheduler for recurring tasks."
-        )
+        current_item = self.scripts_list.currentItem()
+
+        if not current_item:
+            QMessageBox.warning(self, "No Selection", "Please select a script to schedule.")
+            return
+
+        # Get script from manager
+        script_id = current_item.data(Qt.UserRole)
+        script = self.script_manager.get_script(script_id)
+
+        if not script:
+            QMessageBox.warning(self, "Error", "Script not found!")
+            return
+
+        # First, get parameters using the script dialog
+        script_dialog = ScriptDialog(script, self)
+
+        if script_dialog.exec_() == script_dialog.Accepted:
+            parameters = script_dialog.get_parameters()
+
+            # Now open schedule dialog
+            schedule_dialog = ScheduleDialog(script, parameters, self)
+
+            if schedule_dialog.exec_() == schedule_dialog.Accepted:
+                task = schedule_dialog.get_scheduled_task()
+
+                if self.scheduler_manager.add_task(task):
+                    QMessageBox.information(
+                        self,
+                        "Task Scheduled",
+                        f"Task '{task.name}' has been scheduled successfully.\n\n"
+                        f"Schedule: {task.schedule_type}\n"
+                        f"Next run: {task.next_run.strftime('%Y-%m-%d %H:%M:%S') if task.next_run else 'Pending'}"
+                    )
+                    # Refresh scheduled tasks list
+                    self._refresh_scheduled_tasks()
+                else:
+                    QMessageBox.critical(
+                        self,
+                        "Scheduling Failed",
+                        "Failed to schedule the task. Check logs for details."
+                    )
 
     def _on_refresh_scripts(self):
         """Handle refresh scripts action."""
@@ -551,14 +599,82 @@ class MainWindow(QMainWindow):
         if history:
             last_run = history[-1].start_time.strftime('%Y-%m-%d %H:%M:%S')
 
+        tasks_count = len(self.scheduler_manager.get_tasks())
+
         self.stats_label.setText(
             f"Total Scripts: {len(self.script_manager.get_scripts())}\n"
             f"Total Executions: {stats['total_executions']}\n"
             f"Successful: {stats['successful']}\n"
             f"Failed: {stats['failed']}\n"
             f"Success Rate: {stats['success_rate']:.1f}%\n"
+            f"Scheduled Tasks: {tasks_count}\n"
             f"Last Run: {last_run}"
         )
+
+    def _refresh_scheduled_tasks(self):
+        """Refresh the scheduled tasks list."""
+        self.scheduled_list.clear()
+
+        tasks = self.scheduler_manager.get_tasks()
+
+        if not tasks:
+            self.scheduled_list.addItem("No scheduled tasks")
+            return
+
+        for task in tasks:
+            status = "✓" if task.enabled else "✗"
+            next_run = task.next_run.strftime('%Y-%m-%d %H:%M') if task.next_run else 'Pending'
+
+            item_text = f"{status} {task.name} | Next: {next_run} | Runs: {task.run_count}"
+            item = QListWidgetItem(item_text)
+            item.setData(Qt.UserRole, task.id)
+            self.scheduled_list.addItem(item)
+
+    def _on_delete_task(self):
+        """Handle delete scheduled task."""
+        current_item = self.scheduled_list.currentItem()
+
+        if not current_item:
+            return
+
+        task_id = current_item.data(Qt.UserRole)
+        task = self.scheduler_manager.get_task(task_id)
+
+        if not task:
+            return
+
+        reply = QMessageBox.question(
+            self,
+            "Delete Task",
+            f"Are you sure you want to delete the scheduled task:\n\n'{task.name}'?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            if self.scheduler_manager.remove_task(task_id):
+                self._refresh_scheduled_tasks()
+                self._update_dashboard_stats()
+                QMessageBox.information(self, "Success", "Task deleted successfully")
+
+    def _on_task_added(self, task: ScheduledTask):
+        """Handle task added event."""
+        self._refresh_scheduled_tasks()
+        self._update_dashboard_stats()
+        self.activity_list.insertItem(0, f"⏰ Scheduled: {task.name}")
+
+    def _on_task_removed(self, task_id: str):
+        """Handle task removed event."""
+        self._refresh_scheduled_tasks()
+        self._update_dashboard_stats()
+
+    def _on_task_executed(self, task_id: str, success: bool):
+        """Handle scheduled task execution."""
+        task = self.scheduler_manager.get_task(task_id)
+        if task:
+            status = "✓" if success else "✗"
+            self.activity_list.insertItem(0, f"⏰{status} {task.name}: {'Success' if success else 'Failed'}")
+            self._refresh_scheduled_tasks()
 
     def closeEvent(self, event):
         """Handle window close event."""
@@ -573,6 +689,8 @@ class MainWindow(QMainWindow):
         )
 
         if reply == QMessageBox.Yes:
+            # Shutdown scheduler
+            self.scheduler_manager.shutdown()
             self.logger.info("Application closed by user")
             event.accept()
         else:
