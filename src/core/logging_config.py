@@ -215,9 +215,13 @@ class LoggingManager:
             List of log lines
         """
         if log_file is None:
-            log_file = self.main_log_file
-
-        log_path = Path(log_file) if '/' in log_file or '\\' in log_file else self.log_dir / log_file
+            log_path = self.main_log_file
+        elif isinstance(log_file, Path):
+            log_path = log_file
+        elif '/' in log_file or '\\' in log_file:
+            log_path = Path(log_file)
+        else:
+            log_path = self.log_dir / log_file
 
         try:
             if not log_path.exists():
