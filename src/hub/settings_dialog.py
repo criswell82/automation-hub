@@ -428,7 +428,7 @@ class SettingsDialog(QDialog):
                 try:
                     self.security_manager.delete_credential('AnthropicAPIKey')
                     self.logger.info("API key removed from secure storage")
-                except:
+                except Exception:
                     pass
 
             # Save selected model
@@ -472,7 +472,7 @@ class SettingsDialog(QDialog):
             cred = self.security_manager.retrieve_credential('AnthropicAPIKey')
             if cred:
                 return cred.get('password')
-        except:
+        except Exception:
             pass
         return None
 

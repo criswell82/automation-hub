@@ -120,7 +120,7 @@ class WindowManager:
                             self.current_window = window
                             self.logger.info(f"Found window by process: {window}")
                             return window
-                    except:
+                    except Exception:
                         pass
 
             # Wait before retry
@@ -154,7 +154,7 @@ class WindowManager:
                 _, process_id = win32process.GetWindowThreadProcessId(hwnd)
 
                 windows.append(WindowInfo(hwnd, title, class_name, process_id))
-            except:
+            except Exception:
                 pass
 
         win32gui.EnumWindows(callback, None)
@@ -360,7 +360,7 @@ class WindowManager:
 
         try:
             return bool(win32gui.IsWindowVisible(window.hwnd))
-        except:
+        except Exception:
             return False
 
     def get_window_title(self, window: Optional[WindowInfo] = None) -> Optional[str]:
@@ -380,7 +380,7 @@ class WindowManager:
 
         try:
             return win32gui.GetWindowText(window.hwnd)
-        except:
+        except Exception:
             return None
 
     @staticmethod
@@ -399,7 +399,7 @@ class WindowManager:
             exe_path = win32process.GetModuleFileNameEx(handle, 0)
             win32api.CloseHandle(handle)
             return exe_path
-        except:
+        except Exception:
             return ""
 
     def get_active_window(self) -> Optional[WindowInfo]:

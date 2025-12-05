@@ -18,7 +18,7 @@ def validate_file_path(filepath: str, must_exist: bool = False) -> bool:
         if must_exist:
             return path.exists() and path.is_file()
         return True
-    except:
+    except Exception:
         return False
 
 
