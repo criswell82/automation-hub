@@ -27,5 +27,8 @@ PyYAML>=6.0
 # Utilities
 python-dateutil>=2.8.2
 
+# AI Workflow Generation (Optional - required for AI-powered workflow creation)
+anthropic>=0.18.0  # Claude AI API for workflow generation
+
 # Packaging
 PyInstaller>=5.0

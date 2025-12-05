@@ -69,6 +69,12 @@ class ConfigManager:
                 'use_windows_credential_store': True,
                 'encrypt_config': False,
                 'require_authentication': False
+            },
+            'ai': {
+                'model': 'claude-sonnet-4-5-20250929',  # Claude 4.5 Sonnet (latest)
+                'max_tokens': 4000,
+                'use_secure_storage': True,  # Store API key in Windows Credential Manager
+                'temperature': 0.7
             }
         }
 

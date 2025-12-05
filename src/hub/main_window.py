@@ -5,12 +5,13 @@ Central dashboard for managing and executing automation scripts.
 
 import logging
 from typing import Optional
+from pathlib import Path
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTabWidget, QLabel, QPushButton, QTextEdit,
-    QListWidget, QListWidgetItem, QSplitter,
+    QListWidget, QListWidgetItem, QTreeWidget, QTreeWidgetItem, QSplitter,
     QStatusBar, QMenuBar, QAction, QMessageBox,
-    QGroupBox, QScrollArea
+    QGroupBox, QScrollArea, QDialog
 )
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QFont, QIcon
@@ -21,6 +22,12 @@ from .script_manager import ScriptManager, ScriptExecution
 from .script_dialog import ScriptDialog
 from .scheduler import SchedulerManager, ScheduledTask
 from .schedule_dialog import ScheduleDialog
+from .workflow_generator_dialog import WorkflowGeneratorDialog
+from .settings_dialog import SettingsDialog
+from .template_browser_widget import TemplateBrowserWidget
+from .template_uploader_widget import TemplateUploaderWidget
+from .document_to_template_widget import DocumentToTemplateWidget
+from core.template_manager import TemplateManager
 
 
 class MainWindow(QMainWindow):
@@ -80,9 +87,10 @@ class MainWindow(QMainWindow):
         # File menu
         file_menu = menubar.addMenu("&File")
 
-        new_action = QAction("&New Script", self)
+        new_action = QAction("Create &New Workflow", self)
         new_action.setShortcut("Ctrl+N")
-        new_action.triggered.connect(self._on_new_script)
+        new_action.setStatusTip("Create a new workflow using AI assistant")
+        new_action.triggered.connect(self._on_new_workflow)
         file_menu.addAction(new_action)
 
         file_menu.addSeparator()
@@ -183,8 +191,9 @@ class MainWindow(QMainWindow):
         # search_box.setPlaceholderText("Search scripts...")
         # layout.addWidget(search_box)
 
-        # Scripts list
-        self.scripts_list = QListWidget()
+        # Scripts list (tree view with categories)
+        self.scripts_list = QTreeWidget()
+        self.scripts_list.setHeaderLabel("Script Library")
         self.scripts_list.itemClicked.connect(self._on_script_selected)
 
         # Populate with example scripts
@@ -214,6 +223,10 @@ class MainWindow(QMainWindow):
         # Dashboard tab
         dashboard_tab = self._create_dashboard_tab()
         tabs.addTab(dashboard_tab, "Dashboard")
+
+        # Templates tab
+        templates_tab = self._create_templates_tab()
+        tabs.addTab(templates_tab, "Templates")
 
         # Output/Logs tab
         output_tab = self._create_output_tab()
@@ -338,6 +351,31 @@ class MainWindow(QMainWindow):
 
         return widget
 
+    def _create_templates_tab(self) -> QWidget:
+        """Create the templates management tab."""
+        # Use sub-tabs for Browse, Upload, and Create from Document
+        templates_tabs = QTabWidget()
+
+        # Browse Templates sub-tab
+        self.template_browser = TemplateBrowserWidget()
+        templates_tabs.addTab(self.template_browser, "Browse Templates")
+
+        # Upload Template sub-tab
+        self.template_uploader = TemplateUploaderWidget()
+        templates_tabs.addTab(self.template_uploader, "Upload Template")
+
+        # Create from Document sub-tab
+        self.doc_to_template = DocumentToTemplateWidget()
+        templates_tabs.addTab(self.doc_to_template, "Create from Document")
+
+        # Connect signals
+        self.template_browser.template_selected.connect(self._on_template_selected)
+        self.template_browser.template_exported.connect(self._on_template_exported)
+        self.template_uploader.template_imported.connect(self._on_template_imported)
+        self.doc_to_template.template_created.connect(self._on_template_created)
+
+        return templates_tabs
+
     def _create_status_bar(self):
         """Create the status bar."""
         self.status_bar = QStatusBar()
@@ -345,13 +383,40 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage("Ready")
 
     def _populate_scripts_list(self):
-        """Populate the scripts list with available automation modules."""
+        """Populate the scripts list with available automation modules, grouped by category."""
         scripts = self.script_manager.get_scripts()
 
+        # Group scripts by category
+        scripts_by_category = {}
         for script in scripts:
-            item = QListWidgetItem(script.name)
-            item.setData(Qt.UserRole, script.id)  # Store script ID
-            self.scripts_list.addItem(item)
+            category = script.category
+            if category not in scripts_by_category:
+                scripts_by_category[category] = []
+            scripts_by_category[category].append(script)
+
+        # Create tree items for each category
+        for category in sorted(scripts_by_category.keys()):
+            # Create category header
+            category_item = QTreeWidgetItem()
+            category_item.setText(0, f"{category} ({len(scripts_by_category[category])})")
+            category_item.setData(0, Qt.UserRole, None)  # Mark as category header (not executable)
+
+            # Make category header bold
+            font = category_item.font(0)
+            font.setBold(True)
+            category_item.setFont(0, font)
+
+            # Add scripts under this category
+            for script in scripts_by_category[category]:
+                script_item = QTreeWidgetItem(category_item)
+                script_item.setText(0, script.name)
+                script_item.setData(0, Qt.UserRole, script.id)  # Store script ID
+                script_item.setToolTip(0, script.description)  # Show description on hover
+
+            self.scripts_list.addTopLevelItem(category_item)
+
+        # Expand all categories by default
+        self.scripts_list.expandAll()
 
     def _setup_log_monitoring(self):
         """Setup periodic log monitoring."""
@@ -377,9 +442,16 @@ class MainWindow(QMainWindow):
                 )
 
     # Slot methods
-    def _on_script_selected(self, item: QListWidgetItem):
+    def _on_script_selected(self, item: QTreeWidgetItem):
         """Handle script selection."""
-        script_name = item.text()
+        # Check if this is a category header (script_id will be None)
+        script_id = item.data(0, Qt.UserRole)
+
+        if script_id is None:
+            # Category header was clicked, just return (allow expand/collapse)
+            return
+
+        script_name = item.text(0)
         self.logger.info(f"Selected script: {script_name}")
         self.status_bar.showMessage(f"Selected: {script_name}")
 
@@ -392,7 +464,13 @@ class MainWindow(QMainWindow):
             return
 
         # Get script from manager
-        script_id = current_item.data(Qt.UserRole)
+        script_id = current_item.data(0, Qt.UserRole)
+
+        # Check if a category was selected instead of a script
+        if script_id is None:
+            QMessageBox.warning(self, "Invalid Selection", "Please select a specific script, not a category.")
+            return
+
         script = self.script_manager.get_script(script_id)
 
         if not script:
@@ -428,7 +506,13 @@ class MainWindow(QMainWindow):
             return
 
         # Get script from manager
-        script_id = current_item.data(Qt.UserRole)
+        script_id = current_item.data(0, Qt.UserRole)
+
+        # Check if a category was selected instead of a script
+        if script_id is None:
+            QMessageBox.warning(self, "Invalid Selection", "Please select a specific script, not a category.")
+            return
+
         script = self.script_manager.get_script(script_id)
 
         if not script:
@@ -469,28 +553,107 @@ class MainWindow(QMainWindow):
         self.logger.info("Refreshing scripts list...")
         self.scripts_list.clear()
         self._populate_scripts_list()
-        self.status_bar.showMessage("Scripts refreshed")
 
-    def _on_new_script(self):
-        """Handle new script action."""
-        QMessageBox.information(
-            self,
-            "New Script",
-            "New script wizard will be implemented here."
-        )
+        # Also refresh template browser if it exists
+        if hasattr(self, 'template_browser'):
+            self.template_browser.refresh()
+
+        self.status_bar.showMessage("Scripts and templates refreshed")
+
+    def _on_new_workflow(self):
+        """Handle create new workflow action."""
+        try:
+            dialog = WorkflowGeneratorDialog(self)
+            dialog.workflow_created.connect(self._on_workflow_created)
+            dialog.exec_()
+        except Exception as e:
+            self.logger.error(f"Failed to open workflow generator: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to open workflow generator:\n\n{str(e)}"
+            )
+
+    def _on_workflow_created(self, file_path: str):
+        """Handle workflow created event."""
+        self.logger.info(f"New workflow created: {file_path}")
+
+        # Refresh scripts to include the new workflow
+        self._on_refresh_scripts()
+
+        # Show success message
+        self.status_bar.showMessage(f"Workflow created: {Path(file_path).name}", 5000)
+
+        # Optionally switch to scripts tab to show the new workflow
+        if hasattr(self, 'tabs'):
+            self.tabs.setCurrentIndex(0)  # Switch to dashboard/scripts view
+
+    def _on_template_selected(self, template):
+        """Handle template selection from browser."""
+        try:
+            # Open the workflow generator dialog with the selected template
+            dialog = WorkflowGeneratorDialog(self)
+            dialog.workflow_created.connect(self._on_workflow_created)
+
+            # Load the template into the generator
+            dialog._on_template_selected(template)
+
+            dialog.exec_()
+        except Exception as e:
+            self.logger.error(f"Failed to load template: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to load template:\n\n{str(e)}"
+            )
+
+    def _on_template_exported(self, file_path: str):
+        """Handle template export event."""
+        self.logger.info(f"Template exported to: {file_path}")
+        self.status_bar.showMessage(f"Template exported: {Path(file_path).name}", 5000)
+
+    def _on_template_imported(self, file_path: str):
+        """Handle template import event."""
+        self.logger.info(f"Template imported: {file_path}")
+
+        # Refresh scripts to include the new template
+        self._on_refresh_scripts()
+
+        # Refresh template browser to show the new template
+        if hasattr(self, 'template_browser'):
+            self.template_browser.refresh()
+
+        # Show success message
+        self.status_bar.showMessage(f"Template imported: {Path(file_path).name}", 5000)
+
+    def _on_template_created(self, file_path: str):
+        """Handle template created from document event."""
+        self.logger.info(f"Template created from document: {file_path}")
+
+        # Refresh scripts to include the new template
+        self._on_refresh_scripts()
+
+        # Refresh template browser to show the new template
+        if hasattr(self, 'template_browser'):
+            self.template_browser.refresh()
+
+        # Show success message
+        self.status_bar.showMessage(f"Template created: {Path(file_path).name}", 5000)
 
     def _on_settings(self):
         """Handle settings action."""
-        QMessageBox.information(
-            self,
-            "Settings",
-            "Settings dialog will be implemented here.\n\n"
-            "Will include:\n"
-            "- Application preferences\n"
-            "- Module configuration\n"
-            "- Logging settings\n"
-            "- Credential management"
-        )
+        try:
+            dialog = SettingsDialog(self)
+            if dialog.exec_() == QDialog.Accepted:
+                self.status_bar.showMessage("Settings saved successfully", 3000)
+                self.logger.info("Settings updated")
+        except Exception as e:
+            self.logger.error(f"Failed to open settings dialog: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to open settings:\n\n{str(e)}"
+            )
 
     def _on_clear_logs(self):
         """Handle clear logs action."""

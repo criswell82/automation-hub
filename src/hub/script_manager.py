@@ -16,6 +16,9 @@ import traceback
 
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
 
+# Import the dynamic script discovery system
+from core.script_discovery import ScriptDiscovery, ScriptMetadata as DiscoveredScriptMetadata
+
 
 class ScriptMetadata:
     """Metadata for an automation script."""
@@ -134,7 +137,10 @@ class ScriptExecutor(QThread):
         """Execute the specific script based on category."""
         category = self.script.category.lower()
 
-        if category == 'desktop_rpa':
+        # Check if this is a custom script (ID starts with 'custom_')
+        if self.script.id.startswith('custom_'):
+            return self._execute_custom_script()
+        elif category == 'desktop_rpa':
             return self._execute_rpa_script()
         elif category == 'excel':
             return self._execute_excel_script()
@@ -217,6 +223,40 @@ class ScriptExecutor(QThread):
         print(f"Executing OneNote script: {self.script.name}")
         return {'status': 'success', 'message': 'OneNote module ready'}
 
+    def _execute_custom_script(self) -> Dict[str, Any]:
+        """Execute a custom user script loaded from user_scripts directory."""
+        print(f"Executing custom script: {self.script.name}")
+        print(f"Parameters: {self.parameters}")
+
+        try:
+            # Load the script module dynamically
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(
+                self.script.id,
+                self.script.module_path
+            )
+
+            if not spec or not spec.loader:
+                return {'status': 'error', 'message': f'Failed to load module from {self.script.module_path}'}
+
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            # Execute the script's run() function
+            if hasattr(module, 'run'):
+                result = module.run(**self.parameters)
+                print(f"\nExecution completed successfully!")
+                return result if isinstance(result, dict) else {'status': 'success', 'result': result}
+            else:
+                return {'status': 'error', 'message': 'Script must have a run() function'}
+
+        except Exception as e:
+            error_msg = f"Custom script execution failed: {str(e)}"
+            print(f"ERROR: {error_msg}")
+            import traceback
+            traceback.print_exc()
+            return {'status': 'error', 'message': error_msg}
+
 
 class ScriptManager(QObject):
     """
@@ -238,11 +278,14 @@ class ScriptManager(QObject):
         self.discover_scripts()
 
     def discover_scripts(self):
-        """Discover available automation scripts."""
+        """Discover available automation scripts (built-in + custom)."""
         self.logger.info("Discovering automation scripts...")
 
-        # Define available scripts
-        self.scripts = [
+        # Initialize script discovery system
+        self.script_discovery = ScriptDiscovery()
+
+        # Define built-in scripts
+        built_in_scripts = [
             ScriptMetadata(
                 id='desktop_rpa_window',
                 name='Desktop RPA - Window Automation',
@@ -322,7 +365,26 @@ class ScriptManager(QObject):
             )
         ]
 
-        self.logger.info(f"Discovered {len(self.scripts)} scripts")
+        # Discover custom user scripts
+        custom_scripts_metadata = self.script_discovery.scan_directory()
+
+        # Convert discovered scripts to ScriptMetadata format
+        custom_scripts = []
+        for discovered in custom_scripts_metadata:
+            custom_scripts.append(ScriptMetadata(
+                id=discovered.id,
+                name=discovered.name,
+                description=discovered.description,
+                category=discovered.category,
+                module_path=discovered.module_path,
+                parameters=discovered.parameters,
+                example_path=None  # Custom scripts don't have separate example files
+            ))
+
+        # Merge built-in and custom scripts
+        self.scripts = built_in_scripts + custom_scripts
+
+        self.logger.info(f"Discovered {len(built_in_scripts)} built-in + {len(custom_scripts)} custom scripts = {len(self.scripts)} total")
 
     def get_scripts(self, category: Optional[str] = None) -> List[ScriptMetadata]:
         """Get all scripts, optionally filtered by category."""
@@ -336,6 +398,15 @@ class ScriptManager(QObject):
             if script.id == script_id:
                 return script
         return None
+
+    def refresh_scripts(self) -> int:
+        """
+        Refresh the script library (rescan for new custom scripts).
+        Returns the number of scripts discovered.
+        """
+        self.logger.info("Refreshing script library...")
+        self.discover_scripts()
+        return len(self.scripts)
 
     def execute_script(self, script: ScriptMetadata, parameters: Dict[str, Any]):
         """Execute a script with parameters."""
