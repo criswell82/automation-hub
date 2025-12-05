@@ -134,9 +134,9 @@ class TestWorkbookHandler:
         loaded = WorkbookHandler(str(temp_excel_file))
         sheet = loaded.get_sheet(sheet_name)
 
-        # Color can be stored with or without alpha channel prefix
-        rgb_value = sheet["A1"].fill.start_color.rgb
-        assert rgb_value in ("FFFF00", "00FFFF00", "FFFFFF00")
+        # Verify fill was applied (color format varies by openpyxl version)
+        assert sheet["A1"].fill.fill_type == "solid"
+        assert "FFFF00" in str(sheet["A1"].fill.start_color.rgb)
 
     def test_add_formula(self, workbook: WorkbookHandler):
         """Test adding formulas to cells."""
