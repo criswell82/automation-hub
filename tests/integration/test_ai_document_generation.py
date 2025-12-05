@@ -14,7 +14,7 @@ from src.core.document_analyzer import DocumentAnalyzer
 from src.core.ai_workflow_generator import AIWorkflowGenerator
 
 
-def test_prompt_generation():
+def run_prompt_generation_test():
     """Test that prompts are generated correctly for each mode."""
     print("=" * 60)
     print("TEST 1: Prompt Generation for All Modes")
@@ -92,7 +92,7 @@ def test_prompt_generation():
         print("[WARN] PATTERN prompt may be missing key elements")
 
 
-def test_code_validation():
+def run_code_validation_test():
     """Test code validation function."""
     print("\n" + "=" * 60)
     print("TEST 2: Code Validation")
@@ -202,7 +202,7 @@ class TestWorkflow(BaseModule):
         print(f"[WARN] Did not detect missing methods")
 
 
-def test_full_pipeline_without_api():
+def run_full_pipeline_test():
     """Test the full pipeline without actually calling the API."""
     print("\n" + "=" * 60)
     print("TEST 3: Full Pipeline (Without API)")
@@ -258,7 +258,7 @@ def test_full_pipeline_without_api():
         print(f"[OK] Generated template successfully (API key was available)")
 
 
-def test_user_instructions():
+def run_user_instructions_test():
     """Test that user instructions are incorporated into prompts."""
     print("\n" + "=" * 60)
     print("TEST 4: User Instructions Integration")
@@ -312,10 +312,10 @@ if __name__ == "__main__":
 
     try:
         # Run tests
-        test_prompt_generation()
-        test_code_validation()
-        test_full_pipeline_without_api()
-        test_user_instructions()
+        run_prompt_generation_test()
+        run_code_validation_test()
+        run_full_pipeline_test()
+        run_user_instructions_test()
         demo_generated_prompt()
 
         # Summary

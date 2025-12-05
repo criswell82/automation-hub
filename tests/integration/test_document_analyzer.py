@@ -149,8 +149,8 @@ def create_pattern_template():
     return str(output_path)
 
 
-def test_analyzer(filepath, expected_mode, test_name):
-    """Test analyzer on a document."""
+def run_analyzer_test(filepath, expected_mode, test_name):
+    """Run analyzer test on a document (not a pytest test - called from main)."""
     print(f"\n{'=' * 60}")
     print(f"TEST: {test_name}")
     print(f"{'=' * 60}")
@@ -340,10 +340,10 @@ if __name__ == "__main__":
         print("-" * 60)
 
         analyses = {}
-        analyses['fill_in'] = test_analyzer(fill_in_path, 'fill_in', "FILL_IN Mode Detection")
-        analyses['generate'] = test_analyzer(generate_path, 'generate', "GENERATE Mode Detection")
-        analyses['content'] = test_analyzer(content_path, 'content', "CONTENT Mode Detection")
-        analyses['pattern'] = test_analyzer(pattern_path, 'pattern', "PATTERN Mode Detection")
+        analyses['fill_in'] = run_analyzer_test(fill_in_path, 'fill_in', "FILL_IN Mode Detection")
+        analyses['generate'] = run_analyzer_test(generate_path, 'generate', "GENERATE Mode Detection")
+        analyses['content'] = run_analyzer_test(content_path, 'content', "CONTENT Mode Detection")
+        analyses['pattern'] = run_analyzer_test(pattern_path, 'pattern', "PATTERN Mode Detection")
 
         # Test specific features
         print("\n\nStep 3: Testing specific features")

@@ -23,10 +23,22 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          python -m pip install --upgrade pip
+          # Install non-Windows dependencies only
+          pip install PyQt5>=5.15.0 openpyxl>=3.0.10 xlrd>=2.0.1 python-docx>=0.8.11
+          pip install Office365-REST-Python-Client>=2.3.0 msal>=1.20.0 requests>=2.28.0
+          pip install APScheduler>=3.10.0 PyYAML>=6.0 python-dateutil>=2.8.2
+          pip install anthropic>=0.18.0 Pillow>=9.0.0
           pip install -r requirements-dev.txt
 
       - name: Run linting

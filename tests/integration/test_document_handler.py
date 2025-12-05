@@ -12,7 +12,7 @@ sys.path.insert(0, str(project_root))
 
 from src.modules.word_automation.document_handler import DocumentHandler
 
-def test_document_creation():
+def run_document_creation_test():
     """Test creating a new document with content."""
     print("=" * 60)
     print("TEST 1: Document Creation")
@@ -50,7 +50,7 @@ def test_document_creation():
     return str(output_path)
 
 
-def test_structure_extraction(filepath):
+def run_structure_extraction_test(filepath):
     """Test extracting structure from document."""
     print("=" * 60)
     print("TEST 2: Structure Extraction")
@@ -76,7 +76,7 @@ def test_structure_extraction(filepath):
     return structure
 
 
-def test_placeholder_replacement(filepath):
+def run_placeholder_replacement_test(filepath):
     """Test replacing placeholders."""
     print("=" * 60)
     print("TEST 3: Placeholder Replacement")
@@ -103,7 +103,7 @@ def test_placeholder_replacement(filepath):
     print()
 
 
-def test_document_builder():
+def run_document_builder_test():
     """Test building a document from scratch."""
     print("=" * 60)
     print("TEST 4: Building Document from Scratch")
@@ -146,10 +146,10 @@ if __name__ == "__main__":
 
     try:
         # Run tests
-        template_path = test_document_creation()
-        structure = test_structure_extraction(template_path)
-        test_placeholder_replacement(template_path)
-        test_document_builder()
+        template_path = run_document_creation_test()
+        structure = run_structure_extraction_test(template_path)
+        run_placeholder_replacement_test(template_path)
+        run_document_builder_test()
 
         print("=" * 60)
         print("ALL TESTS PASSED [OK]")
