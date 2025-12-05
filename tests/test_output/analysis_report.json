@@ -1,0 +1,38 @@
+{
+  "fill_in": {
+    "mode": "fill_in",
+    "confidence": 0.95,
+    "placeholder_count": 11,
+    "parameter_count": 12,
+    "template_name": "Customer Invoice Generator",
+    "category": "Reports",
+    "complexity": 4.72
+  },
+  "generate": {
+    "mode": "pattern",
+    "confidence": 0.75,
+    "placeholder_count": 0,
+    "parameter_count": 2,
+    "template_name": "Quarterly Business Report",
+    "category": "Reports",
+    "complexity": 5.93
+  },
+  "content": {
+    "mode": "content",
+    "confidence": 0.8,
+    "placeholder_count": 0,
+    "parameter_count": 1,
+    "template_name": "Company Letterhead",
+    "category": "Email",
+    "complexity": 1.03
+  },
+  "pattern": {
+    "mode": "pattern",
+    "confidence": 0.75,
+    "placeholder_count": 0,
+    "parameter_count": 2,
+    "template_name": "Employee Directory",
+    "category": "Files",
+    "complexity": 5.63
+  }
+}
