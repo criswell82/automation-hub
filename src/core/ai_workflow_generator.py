@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 class AIWorkflowGenerator:
     """Generates workflow scripts using AI"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the AI workflow generator"""
         self.logger = logger
         self.api_key = self._get_api_key()

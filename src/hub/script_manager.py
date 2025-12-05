@@ -67,7 +67,7 @@ class ScriptExecution:
         self.error: Optional[str] = None
         self.result: Optional[Dict[str, Any]] = None
 
-    def complete(self, result: Dict[str, Any], error: Optional[str] = None):
+    def complete(self, result: Dict[str, Any], error: Optional[str] = None) -> None:
         """Mark execution as complete."""
         self.end_time = datetime.now()
         self.result = result
@@ -94,7 +94,7 @@ class ScriptExecutor(QThread):
         self.parameters = parameters
         self.logger = logging.getLogger(__name__)
 
-    def run(self):
+    def run(self) -> None:
         """Execute the script."""
         result = None
         error = None
@@ -267,7 +267,7 @@ class ScriptManager(QObject):
     execution_finished = pyqtSignal(ScriptExecution)
     output_received = pyqtSignal(str)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.scripts: List[ScriptMetadata] = []
@@ -277,7 +277,7 @@ class ScriptManager(QObject):
         # Discover scripts
         self.discover_scripts()
 
-    def discover_scripts(self):
+    def discover_scripts(self) -> None:
         """Discover available automation scripts (built-in + custom)."""
         self.logger.info("Discovering automation scripts...")
 
@@ -408,7 +408,7 @@ class ScriptManager(QObject):
         self.discover_scripts()
         return len(self.scripts)
 
-    def execute_script(self, script: ScriptMetadata, parameters: Dict[str, Any]):
+    def execute_script(self, script: ScriptMetadata, parameters: Dict[str, Any]) -> None:
         """Execute a script with parameters."""
         self.logger.info(f"Executing script: {script.name}")
 
@@ -431,11 +431,11 @@ class ScriptManager(QObject):
         # Start execution
         self.current_executor.start()
 
-    def _on_output(self, output: str):
+    def _on_output(self, output: str) -> None:
         """Handle output from script execution."""
         self.output_received.emit(output)
 
-    def _on_finished(self, execution: ScriptExecution, result: Dict[str, Any], error: str):
+    def _on_finished(self, execution: ScriptExecution, result: Dict[str, Any], error: str) -> None:
         """Handle script execution completion."""
         execution.complete(result, error)
         self.execution_finished.emit(execution)

@@ -40,7 +40,7 @@ class AsanaCSVHandler(BaseModule):
         - mapping: Column mapping (for convert operation)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="AsanaCSVHandler",
             description="Generate and process Asana CSV files",
@@ -338,7 +338,7 @@ class AsanaCSVHandler(BaseModule):
 
         return task
 
-    def _write_csv(self, filepath: str, data: List[Dict[str, Any]]):
+    def _write_csv(self, filepath: str, data: List[Dict[str, Any]]) -> None:
         """
         Write CSV file in Asana format.
 
@@ -434,7 +434,7 @@ class AsanaCSVHandler(BaseModule):
                 tasks.append(dict(row))
         return tasks
 
-    def _save_tasks_to_file(self, tasks: List[Dict[str, Any]], filepath: str):
+    def _save_tasks_to_file(self, tasks: List[Dict[str, Any]], filepath: str) -> None:
         """Save tasks to JSON file."""
         import json
 

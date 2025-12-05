@@ -21,7 +21,7 @@ class OneNoteManager(BaseModule):
     Provides user-friendly API for common OneNote operations.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize OneNote Manager."""
         super().__init__(
             name="OneNoteManager",
@@ -36,9 +36,9 @@ class OneNoteManager(BaseModule):
 
     def configure(
         self,
-        default_notebook: str = None,
-        default_section: str = None,
-        **kwargs
+        default_notebook: Optional[str] = None,
+        default_section: Optional[str] = None,
+        **kwargs: Any
     ) -> bool:
         """
         Configure OneNote manager.

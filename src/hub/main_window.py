@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
     Main application window for Automation Hub.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the main window."""
         super().__init__()
 
@@ -68,19 +68,19 @@ class MainWindow(QMainWindow):
 
         self.logger.info("Main window initialized successfully")
 
-    def _connect_script_manager(self):
+    def _connect_script_manager(self) -> None:
         """Connect script manager signals."""
         self.script_manager.execution_started.connect(self._on_execution_started)
         self.script_manager.execution_finished.connect(self._on_execution_finished)
         self.script_manager.output_received.connect(self._on_script_output)
 
-    def _connect_scheduler(self):
+    def _connect_scheduler(self) -> None:
         """Connect scheduler signals."""
         self.scheduler_manager.task_added.connect(self._on_task_added)
         self.scheduler_manager.task_removed.connect(self._on_task_removed)
         self.scheduler_manager.task_executed.connect(self._on_task_executed)
 
-    def _create_menu_bar(self):
+    def _create_menu_bar(self) -> None:
         """Create the menu bar."""
         menubar = self.menuBar()
 
@@ -149,7 +149,7 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(self._on_about)
         help_menu.addAction(about_action)
 
-    def _create_central_widget(self):
+    def _create_central_widget(self) -> None:
         """Create the central widget with main content."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -376,13 +376,13 @@ class MainWindow(QMainWindow):
 
         return templates_tabs
 
-    def _create_status_bar(self):
+    def _create_status_bar(self) -> None:
         """Create the status bar."""
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("Ready")
 
-    def _populate_scripts_list(self):
+    def _populate_scripts_list(self) -> None:
         """Populate the scripts list with available automation modules, grouped by category."""
         scripts = self.script_manager.get_scripts()
 
@@ -418,13 +418,13 @@ class MainWindow(QMainWindow):
         # Expand all categories by default
         self.scripts_list.expandAll()
 
-    def _setup_log_monitoring(self):
+    def _setup_log_monitoring(self) -> None:
         """Setup periodic log monitoring."""
         self.log_timer = QTimer()
         self.log_timer.timeout.connect(self._update_logs)
         self.log_timer.start(2000)  # Update every 2 seconds
 
-    def _update_logs(self):
+    def _update_logs(self) -> None:
         """Update the output display with recent logs."""
         # Get recent logs from logging manager
         recent_logs = self.logging_manager.get_recent_logs(lines=10)
@@ -753,7 +753,7 @@ class MainWindow(QMainWindow):
             self.output_display.verticalScrollBar().maximum()
         )
 
-    def _update_dashboard_stats(self):
+    def _update_dashboard_stats(self) -> None:
         """Update dashboard statistics."""
         stats = self.script_manager.get_statistics()
         history = self.script_manager.get_execution_history(limit=1)
@@ -774,7 +774,7 @@ class MainWindow(QMainWindow):
             f"Last Run: {last_run}"
         )
 
-    def _refresh_scheduled_tasks(self):
+    def _refresh_scheduled_tasks(self) -> None:
         """Refresh the scheduled tasks list."""
         self.scheduled_list.clear()
 

@@ -26,7 +26,7 @@ class DocumentHandler:
     - Extracting document structure
     """
 
-    def __init__(self, filepath: str = None):
+    def __init__(self, filepath: Optional[str] = None) -> None:
         """
         Initialize document handler.
 
@@ -42,14 +42,14 @@ class DocumentHandler:
         else:
             self.logger.info("Document handler initialized (no document loaded)")
 
-    def create_document(self):
+    def create_document(self) -> 'DocumentHandler':
         """Create a new blank document."""
         self.document = Document()
         self.filepath = None
         self.logger.info("Created new blank document")
         return self
 
-    def load_template(self, filepath: str):
+    def load_template(self, filepath: str) -> 'DocumentHandler':
         """
         Load an existing Word document as template.
 
@@ -80,7 +80,7 @@ class DocumentHandler:
             self.logger.error(f"Failed to load document: {e}")
             raise
 
-    def add_heading(self, text: str, level: int = 1):
+    def add_heading(self, text: str, level: int = 1) -> 'DocumentHandler':
         """
         Add a heading to the document.
 
@@ -99,7 +99,7 @@ class DocumentHandler:
         self.logger.debug(f"Added heading (level {level}): {text}")
         return self
 
-    def add_paragraph(self, text: str, style: str = None):
+    def add_paragraph(self, text: str, style: Optional[str] = None) -> 'DocumentHandler':
         """
         Add a paragraph to the document.
 
@@ -121,7 +121,7 @@ class DocumentHandler:
         self.logger.debug(f"Added paragraph: {text[:50]}...")
         return self
 
-    def add_page_break(self):
+    def add_page_break(self) -> 'DocumentHandler':
         """Add a page break."""
         if not self.document:
             self.create_document()
@@ -130,7 +130,7 @@ class DocumentHandler:
         self.logger.debug("Added page break")
         return self
 
-    def add_table(self, data: List[List[Any]], headers: List[str] = None, style: str = 'Light Grid Accent 1'):
+    def add_table(self, data: List[List[Any]], headers: Optional[List[str]] = None, style: str = 'Light Grid Accent 1') -> 'DocumentHandler':
         """
         Add a table to the document.
 
@@ -191,7 +191,7 @@ class DocumentHandler:
         self.logger.debug(f"Added table with {num_rows} rows and {num_cols} columns")
         return self
 
-    def replace_placeholders(self, mapping: Dict[str, Any], placeholder_pattern: str = r'\{\{(\w+)\}\}'):
+    def replace_placeholders(self, mapping: Dict[str, Any], placeholder_pattern: str = r'\{\{(\w+)\}\}') -> 'DocumentHandler':
         """
         Replace placeholders in the document with actual values.
 
@@ -248,7 +248,7 @@ class DocumentHandler:
         self.logger.info(f"Replaced {replacements_made} placeholders")
         return self
 
-    def apply_formatting(self, paragraph_index: int = -1, **formatting):
+    def apply_formatting(self, paragraph_index: int = -1, **formatting: Any) -> 'DocumentHandler':
         """
         Apply formatting to a paragraph or the last added paragraph.
 
@@ -374,7 +374,7 @@ class DocumentHandler:
 
         return structure
 
-    def save(self, filepath: str = None):
+    def save(self, filepath: Optional[str] = None) -> str:
         """
         Save the document to a file.
 

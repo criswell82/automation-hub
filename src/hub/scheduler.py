@@ -6,7 +6,7 @@ Handles scheduled and recurring task execution using APScheduler.
 import logging
 import json
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from datetime import datetime
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -92,14 +92,14 @@ class SchedulerManager(QObject):
     task_removed = pyqtSignal(str)  # task_id
     task_updated = pyqtSignal(ScheduledTask)
 
-    def __init__(self, script_manager, config_manager):
+    def __init__(self, script_manager: Any, config_manager: Any) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.script_manager = script_manager
         self.config_manager = config_manager
 
         self.tasks: Dict[str, ScheduledTask] = {}
-        self.scheduler = None
+        self.scheduler: Optional[Any] = None
 
         if not APSCHEDULER_AVAILABLE:
             self.logger.warning("APScheduler not available - task scheduling disabled")
@@ -213,7 +213,7 @@ class SchedulerManager(QObject):
         """Get a specific task."""
         return self.tasks.get(task_id)
 
-    def _execute_task(self, task_id: str):
+    def _execute_task(self, task_id: str) -> None:
         """Execute a scheduled task."""
         if task_id not in self.tasks:
             self.logger.error(f"Task not found: {task_id}")
@@ -246,7 +246,7 @@ class SchedulerManager(QObject):
             self.logger.error(f"Task execution failed: {e}")
             self.task_executed.emit(task_id, False)
 
-    def _create_trigger(self, schedule_type: str, config: Dict[str, Any]):
+    def _create_trigger(self, schedule_type: str, config: Dict[str, Any]) -> Optional[Any]:
         """Create APScheduler trigger from configuration."""
         try:
             if schedule_type == 'once':
@@ -270,7 +270,7 @@ class SchedulerManager(QObject):
             self.logger.error(f"Failed to create trigger: {e}")
             return None
 
-    def _on_job_executed(self, event):
+    def _on_job_executed(self, event: Any) -> None:
         """Handle job execution event."""
         job_id = event.job_id
         if job_id in self.tasks:
@@ -279,7 +279,7 @@ class SchedulerManager(QObject):
             if job:
                 task.next_run = job.next_run_time
 
-    def _load_tasks(self):
+    def _load_tasks(self) -> None:
         """Load tasks from configuration."""
         try:
             tasks_file = Path(self.config_manager.config_dir) / 'scheduled_tasks.json'
@@ -297,7 +297,7 @@ class SchedulerManager(QObject):
         except Exception as e:
             self.logger.error(f"Failed to load tasks: {e}")
 
-    def _save_tasks(self):
+    def _save_tasks(self) -> None:
         """Save tasks to configuration."""
         try:
             tasks_file = Path(self.config_manager.config_dir) / 'scheduled_tasks.json'
@@ -310,7 +310,7 @@ class SchedulerManager(QObject):
         except Exception as e:
             self.logger.error(f"Failed to save tasks: {e}")
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Shutdown the scheduler."""
         if self.scheduler:
             self.scheduler.shutdown()
