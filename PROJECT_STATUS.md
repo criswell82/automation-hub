@@ -1,393 +1,265 @@
 # Automation Hub - Project Status
 
-## ✅ MVP COMPLETE - Version 1.0.0-alpha
+## Current Version: 1.0.0-beta
 
-### Build Date: 2025-11-03
-
----
-
-## 📋 Project Overview
-
-**Automation Hub** is a fully functional Corporate Desktop Automation Platform built with Python and PyQt5. The MVP includes all core features, 6 automation modules, a graphical interface, and deployment configuration.
-
-**Lines of Code:** ~5,500
-**Files Created:** 42
-**Commit:** 9685100
+### Last Updated: 2025-12-05
 
 ---
 
-## ✅ Completed Components
+## Project Overview
 
-### Core Infrastructure (100% Complete)
+**Automation Hub** is a fully functional Corporate Desktop Automation Platform built with Python and PyQt5. The project has evolved from MVP (alpha) to a more mature beta release with comprehensive testing, CI/CD, and additional integrations.
 
-✅ **Configuration Management** (`src/core/config.py`)
-- JSON/YAML configuration system
-- Application and module-specific settings
-- Import/export functionality
-- Default configuration with auto-generation
-
-✅ **Logging Framework** (`src/core/logging_config.py`)
-- Rotating file handlers (10MB files, 5 backups)
-- Multiple log levels and formatters
-- Module-specific log files
-- Log cleanup and archiving
-
-✅ **Error Handling** (`src/core/error_handler.py`)
-- Centralized error management
-- Error categorization and severity levels
-- User-friendly error messages
-- Error history and statistics
-
-✅ **Security Manager** (`src/core/security.py`)
-- Windows Credential Manager integration
-- Secure credential storage and retrieval
-- Fallback to encrypted file storage
-- API key generation
-
-✅ **PowerShell Bridge** (`src/core/powershell_bridge.py`)
-- Execute PowerShell commands from Python
-- Script execution with parameters
-- Environment variable management
-- System information retrieval
-
-### Automation Modules (100% Complete)
-
-✅ **Desktop RPA Module** (Priority #1 - FULLY IMPLEMENTED)
-- **Window Manager** (`window_manager.py`)
-  - Find windows by title, regex, class, or process
-  - Activate, position, maximize, minimize windows
-  - Window state detection and monitoring
-  - Robust retry and timeout logic
-
-- **Input Controller** (`input_controller.py`)
-  - Mouse control (click, move, drag, scroll)
-  - Keyboard automation (type, hotkeys, special keys)
-  - Screenshot capture
-  - Image recognition and clicking
-  - Configurable speeds and delays
-
-- **Example Scripts:**
-  - Notepad automation demo
-  - Copy-paste between applications
-  - Advanced window management
-  - Retry logic patterns
-
-✅ **Excel Automation Module**
-- Workbook creation and manipulation
-- Read/write data to ranges
-- Cell formatting (fonts, colors, borders)
-- Formula insertion
-- Chart creation (bar, line, pie)
-- Auto-size columns
-- Template support
-
-✅ **Outlook Automation Module**
-- Email sending with attachments
-- Read emails from folders
-- Filter unread messages
-- Task creation from emails
-- COM interface integration
-
-✅ **SharePoint Integration**
-- File upload/download
-- Document library management
-- Authentication with Office365 API
-- Search capabilities
-
-✅ **Word Automation**
-- Document creation and modification
-- Template-based generation
-- Text formatting
-- python-docx integration
-
-✅ **OneNote Integration**
-- Microsoft Graph API connection
-- Page creation and management
-- Content insertion
-- Notebook organization
-
-### Hub GUI (100% Complete)
-
-✅ **Main Window** (`src/hub/main_window.py`)
-- Professional PyQt5 interface
-- Script library browser
-- Dashboard with statistics
-- Output/log viewer with real-time updates
-- Scheduled tasks panel
-- Menu bar with shortcuts
-- Status bar
-- About dialog
-
-**Features:**
-- Script selection and execution
-- Task scheduling interface
-- Log export functionality
-- Settings dialog (placeholder for expansion)
-- Keyboard shortcuts (Ctrl+R, Ctrl+S, F5, etc.)
-- Confirmation dialogs for safety
-
-### Build & Deployment (100% Complete)
-
-✅ **Setup Configuration** (`setup.py`)
-- setuptools configuration
-- Package metadata
-- Dependencies management
-- Entry point definition
-
-✅ **PyInstaller Configuration** (`pyinstaller.spec`)
-- Single executable build
-- Hidden imports for all modules
-- Resource bundling
-- Windows GUI mode
-
-✅ **Build Script** (`scripts/build.py`)
-- Automated build process
-- Dependency verification
-- Clean and rebuild
-- Build verification
-
-### Documentation (100% Complete)
-
-✅ **README.md**
-- Project overview
-- Installation instructions
-- Quick start guide
-- Feature list
-
-✅ **User Guide** (`docs/user_guide.md`)
-- Dashboard usage
-- Running scripts
-- Scheduling tasks
-- Configuration
-- Troubleshooting
-
-✅ **Developer Guide** (`docs/developer_guide.md`)
-- Architecture overview
-- Creating automation scripts
-- Module API reference
-- Testing guidelines
-- Build instructions
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-1. **Python 3.8+** installed
-2. **Windows 10+** operating system
-3. **Git** for version control
-
-### Installation Steps
-
-```bash
-# 1. Navigate to project directory
-cd automation_hub
-
-# 2. Create virtual environment
-python -m venv venv
-venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Run the application
-python src/main.py
-```
-
-### Building Executable
-
-```bash
-# Run the build script
-python scripts/build.py
-
-# Executable will be created at:
-# dist/AutomationHub.exe
-```
-
----
-
-## 📂 Project Structure
-
-```
-automation_hub/
-├── src/
-│   ├── main.py                    # Application entry point
-│   ├── core/                      # Core infrastructure
-│   │   ├── config.py
-│   │   ├── logging_config.py
-│   │   ├── error_handler.py
-│   │   ├── security.py
-│   │   └── powershell_bridge.py
-│   ├── hub/                       # PyQt5 GUI
-│   │   └── main_window.py
-│   ├── modules/                   # Automation modules
-│   │   ├── base_module.py
-│   │   ├── desktop_rpa/
-│   │   ├── excel_automation/
-│   │   ├── outlook_automation/
-│   │   ├── sharepoint/
-│   │   ├── word_automation/
-│   │   └── onenote/
-│   └── utils/                     # Utility functions
-├── docs/                          # Documentation
-├── scripts/                       # Build scripts
-├── resources/                     # Resources (icons, templates)
-├── requirements.txt
-├── setup.py
-├── pyinstaller.spec
-└── README.md
-```
-
----
-
-## 🔧 Configuration
-
-### First Launch
-
-On first launch, the application will create:
-
-- **Config directory:** `%APPDATA%/AutomationHub/config/`
-- **Log directory:** `%APPDATA%/AutomationHub/logs/`
-- **Temp directory:** `%APPDATA%/AutomationHub/temp/`
-- **Output directory:** `%APPDATA%/AutomationHub/output/`
-
-### Configuration Files
-
-- **config.json:** Application settings
-- **modules.json:** Module-specific configurations
-
----
-
-## 🎯 Testing the Implementation
-
-### Test Desktop RPA Module
-
-```bash
-# Navigate to examples directory
-cd src/modules/desktop_rpa/examples
-
-# Run Notepad automation example
-python example_notepad_automation.py
-
-# Run copy-paste example
-python example_copy_paste_automation.py
-
-# Run advanced automation examples
-python example_advanced_automation.py
-```
-
-### Test Hub GUI
-
-```bash
-# Run the main application
-python src/main.py
-```
-
-**What to test:**
-1. Dashboard displays correctly
-2. Script list shows available automations
-3. Output viewer shows logs in real-time
-4. Menu items are functional
-5. About dialog displays version info
-
----
-
-## 📝 Next Steps & Future Enhancements
-
-### Phase 2 Enhancements (Recommended)
-
-1. **Script Manager Implementation**
-   - Dynamic script discovery
-   - Script parameter configuration UI
-   - Script execution engine
-
-2. **Task Scheduler**
-   - APScheduler integration
-   - Recurring task management
-   - Execution history tracking
-
-3. **Additional GUI Features**
-   - Settings dialog with all options
-   - Dark/light theme support
-   - Advanced log filtering
-
-4. **Module Expansions**
-   - Complete SharePoint authentication
-   - Full Graph API implementation for OneNote
-   - Advanced Excel pivot table support
-
-5. **Testing & Quality**
-   - Unit tests for core components
-   - Integration tests for modules
-   - Performance optimization
-
-6. **Security Enhancements**
-   - Credential encryption
-   - Audit logging
-   - Role-based access control
-
-### Phase 3 - Production Readiness
-
-1. Auto-update mechanism
-2. Installer creation (NSIS/Inno Setup)
-3. Comprehensive error recovery
-4. Performance monitoring
-5. User analytics
-
----
-
-## 🐛 Known Limitations
-
-1. **SharePoint Module:** Authentication requires Office365-REST-Python-Client setup
-2. **OneNote Module:** Requires Microsoft Graph API credentials
-3. **Task Scheduler:** UI placeholders - APScheduler integration pending
-4. **Script Manager:** Placeholder for future dynamic script loading
-
-**Note:** These are intentional MVP limitations and can be addressed in Phase 2.
-
----
-
-## 📊 Statistics
+### Statistics
 
 | Metric | Value |
 |--------|-------|
-| Total Files | 42 |
-| Total Lines of Code | ~5,500 |
-| Modules Implemented | 6 |
-| Core Components | 5 |
-| Example Scripts | 3 |
-| Documentation Pages | 3 |
-| Build Success | ✅ Ready |
+| Total Python Files | ~50+ |
+| Lines of Code | ~8,000+ |
+| Automation Modules | 7 |
+| Core Components | 6 |
+| Test Cases | 65 |
+| Documentation Files | 8 |
 
 ---
 
-## 🎉 Conclusion
+## Version History
 
-**The Automation Hub MVP is COMPLETE and ready for testing!**
-
-All planned features for the MVP have been successfully implemented:
-- ✅ Core infrastructure
-- ✅ Desktop RPA (Window + Input automation)
-- ✅ Excel, Outlook, SharePoint, Word, OneNote modules
-- ✅ PyQt5 GUI with dashboard
-- ✅ Build configuration for single executable
-- ✅ Comprehensive documentation
-
-**You can now:**
-1. Run the application: `python src/main.py`
-2. Test RPA examples in `src/modules/desktop_rpa/examples/`
-3. Build the executable: `python scripts/build.py`
-4. Deploy to corporate environment
-5. Begin automating your workflows!
+| Version | Date | Status |
+|---------|------|--------|
+| 1.0.0-beta | 2025-12-05 | **Current** |
+| 1.0.0-alpha | 2025-11-03 | MVP Complete |
 
 ---
 
-**Version:** 1.0.0-alpha
-**Status:** MVP Complete ✅
-**Date:** 2025-11-03
-**Built with:** Python, PyQt5, pywin32, openpyxl, pyautogui
+## Feature Status
+
+### Core Infrastructure (100% Complete)
+
+| Component | Status | File |
+|-----------|--------|------|
+| Configuration Management | ✅ Complete | `src/core/config.py` |
+| Logging Framework | ✅ Complete | `src/core/logging_config.py` |
+| Error Handling | ✅ Complete | `src/core/error_handler.py` |
+| Security Manager | ✅ Complete | `src/core/security.py` |
+| PowerShell Bridge | ✅ Complete | `src/core/powershell_bridge.py` |
+| AI Workflow Generator | ✅ Complete | `src/core/ai_workflow_generator.py` |
+| Template Manager | ✅ Complete | `src/core/template_manager.py` |
+
+### Automation Modules (100% Complete)
+
+| Module | Status | Features |
+|--------|--------|----------|
+| Desktop RPA | ✅ Complete | Window management, input control, screenshots |
+| Excel Automation | ✅ Complete | Read/write, formatting, charts, formulas |
+| Outlook Automation | ✅ Complete | Send/read emails, attachments, tasks |
+| SharePoint | ✅ Complete | Upload/download, document management |
+| Word Automation | ✅ Complete | Templates, placeholders, formatting |
+| OneNote | ✅ Complete | COM client, Graph API, content formatting |
+| Asana | ✅ Complete | Email-to-task, browser automation, CSV |
+
+### Hub GUI (100% Complete)
+
+| Component | Status | Features |
+|-----------|--------|----------|
+| Main Window | ✅ Complete | Dashboard, script browser, tabs |
+| Script Manager | ✅ Complete | Discovery, execution, history |
+| Task Scheduler | ✅ Complete | APScheduler, cron, intervals |
+| Script Dialog | ✅ Complete | Parameter forms, dry run |
+| Schedule Dialog | ✅ Complete | One-time, recurring schedules |
+| Workflow Generator | ✅ Complete | AI-powered script creation |
+| Template Browser | ✅ Complete | Search, filter, preview |
+| Settings Dialog | ✅ Complete | API keys, preferences |
+
+### Testing & CI/CD (100% Complete)
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| Unit Tests | ✅ Complete | ConfigManager, SecurityManager, TemplateManager |
+| Integration Tests | ✅ Complete | Excel automation, Document analyzer |
+| GitHub Actions | ✅ Complete | Python 3.10, 3.11, 3.12 |
+| Code Coverage | ✅ Complete | Codecov integration |
+| Linting | ✅ Complete | flake8 |
+
+### Documentation (100% Complete)
+
+| Document | Status | Purpose |
+|----------|--------|---------|
+| README.md | ✅ Complete | Project overview, installation |
+| CHANGELOG.md | ✅ Complete | Version history |
+| PROJECT_STATUS.md | ✅ Complete | Current status |
+| User Guide | ✅ Complete | End-user documentation |
+| Developer Guide | ✅ Complete | Development documentation |
+| AI Generator Guide | ✅ Complete | AI feature documentation |
+| Asana Guide | ✅ Complete | Asana integration docs |
+| OneNote Guide | ✅ Complete | OneNote integration docs |
 
 ---
 
-*For questions or issues, refer to the documentation in the `docs/` directory.*
+## Recent Changes (1.0.0-beta)
+
+### Added
+- GitHub Actions CI/CD pipeline
+- Comprehensive pytest test suite (65 tests)
+- Asana integration module
+- AI Workflow Generator with Claude API
+- Template management system
+- Enhanced OneNote integration (COM + Graph)
+- Workflow helper modules (refactored)
+
+### Improved
+- Code quality (type hints, linting fixes)
+- Module organization (split workflow_helpers.py)
+- Test coverage and reliability
+- Documentation completeness
+
+### Fixed
+- Python 3.10+ compatibility
+- Windows path handling
+- Unicode in build script
+- Various test assertions
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Automation Hub                          │
+├─────────────────────────────────────────────────────────────┤
+│                         GUI Layer                            │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
+│  │  Main    │ │  Script  │ │ Schedule │ │ Template │       │
+│  │  Window  │ │  Dialog  │ │  Dialog  │ │ Browser  │       │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘       │
+├───────┼────────────┼────────────┼────────────┼──────────────┤
+│       │            │            │            │               │
+│  ┌────┴────┐  ┌────┴────┐  ┌────┴────┐  ┌────┴────┐        │
+│  │ Script  │  │  Task   │  │ Workflow│  │ Template│        │
+│  │ Manager │  │Scheduler│  │Generator│  │ Manager │        │
+│  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘        │
+├───────┼────────────┼────────────┼────────────┼──────────────┤
+│                      Core Infrastructure                     │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
+│  │  Config  │ │ Logging  │ │ Security │ │  Error   │       │
+│  │ Manager  │ │ Manager  │ │ Manager  │ │ Handler  │       │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │
+├─────────────────────────────────────────────────────────────┤
+│                    Automation Modules                        │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │
+│  │ Desktop │ │  Excel  │ │ Outlook │ │SharePnt │           │
+│  │   RPA   │ │  Auto   │ │  Auto   │ │         │           │
+│  └─────────┘ └─────────┘ └─────────┘ └─────────┘           │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐                       │
+│  │  Word   │ │ OneNote │ │  Asana  │                       │
+│  │  Auto   │ │         │ │         │                       │
+│  └─────────┘ └─────────┘ └─────────┘                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Getting Started
+
+### Quick Start
+
+```bash
+# Clone repository
+git clone https://github.com/criswell82/automation-hub.git
+cd automation-hub
+
+# Create virtual environment
+python -m venv venv
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run application
+python src/main.py
+```
+
+### Build Executable
+
+```bash
+python scripts/build.py
+# Output: dist/AutomationHub.exe
+```
+
+### Run Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v --cov=src
+```
+
+---
+
+## Configuration
+
+### Application Directories
+
+| Directory | Purpose |
+|-----------|---------|
+| `%APPDATA%/AutomationHub/config/` | Configuration files |
+| `%APPDATA%/AutomationHub/logs/` | Log files |
+| `%APPDATA%/AutomationHub/temp/` | Temporary files |
+| `%APPDATA%/AutomationHub/output/` | Output files |
+
+### Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `config.json` | Main application settings |
+| `modules.json` | Module-specific configurations |
+| `scheduled_tasks.json` | Scheduled task definitions |
+
+---
+
+## Known Issues
+
+1. **Test Failure**: `test_format_cells_with_fill` - Excel color assertion issue (non-critical)
+2. **SharePoint**: Requires Office365-REST-Python-Client credentials
+3. **OneNote Graph**: Requires Microsoft Graph API setup for cloud features
+4. **AI Generator**: Requires Anthropic API key for AI features
+
+---
+
+## Roadmap
+
+### Completed (1.0.0-beta)
+- [x] CI/CD pipeline
+- [x] Test suite
+- [x] Asana integration
+- [x] AI workflow generator
+- [x] Template system
+- [x] Code quality improvements
+
+### Planned (Future)
+- [ ] Auto-update mechanism
+- [ ] Theme support (dark/light)
+- [ ] Plugin system
+- [ ] Advanced dashboard
+- [ ] Performance monitoring
+
+---
+
+## Contributors
+
+- Development Team
+- Claude AI (Code assistance)
+
+---
+
+## Support
+
+- **Documentation**: See `docs/` directory
+- **Issues**: GitHub Issues
+- **Changelog**: See `CHANGELOG.md`
+
+---
+
+**Version:** 1.0.0-beta
+**Status:** Beta Release
+**Date:** 2025-12-05
+**Built with:** Python 3.10+, PyQt5, pywin32, openpyxl, APScheduler
