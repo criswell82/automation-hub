@@ -128,7 +128,7 @@ class TestWorkbookHandler:
         sheet_name = workbook.get_sheet_names()[0]
 
         workbook.write_data(sheet_name, [["Colored"]])
-        workbook.format_cells(sheet_name, "A1", fill_color="FFFF00")
+        workbook.format_cells(sheet_name, "A1:A1", fill_color="FFFF00")
 
         workbook.save(str(temp_excel_file))
         loaded = WorkbookHandler(str(temp_excel_file))
