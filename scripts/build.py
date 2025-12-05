@@ -60,12 +60,12 @@ def main():
 
     if exe_path.exists():
         size_mb = exe_path.stat().st_size / (1024 * 1024)
-        print(f"\n✓ Build successful!")
+        print(f"\n[OK] Build successful!")
         print(f"  Executable: {exe_path}")
         print(f"  Size: {size_mb:.2f} MB")
         return 0
     else:
-        print(f"\n✗ Build failed - executable not found!")
+        print(f"\n[FAIL] Build failed - executable not found!")
         return 1
 
 if __name__ == "__main__":
@@ -73,5 +73,5 @@ if __name__ == "__main__":
         exit_code = main()
         sys.exit(exit_code)
     except Exception as e:
-        print(f"\n✗ Build failed with error: {e}")
+        print(f"\n[FAIL] Build failed with error: {e}")
         sys.exit(1)
