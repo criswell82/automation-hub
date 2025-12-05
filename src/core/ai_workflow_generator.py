@@ -1371,7 +1371,7 @@ def run(**kwargs):
 6. Return structured result dict
 7. Follow PEP 8 style guidelines
 
-{f"## USER INSTRUCTIONS\\n\\n{user_instructions}\\n" if user_instructions else ""}
+{("## USER INSTRUCTIONS\n\n" + user_instructions + "\n") if user_instructions else ""}
 
 ## OUTPUT
 
@@ -1441,7 +1441,7 @@ Use DocumentHandler methods:
 - add_table(data, headers)
 - save(output_file)
 
-{f"## USER INSTRUCTIONS\\n\\n{user_instructions}\\n" if user_instructions else ""}
+{("## USER INSTRUCTIONS\n\n" + user_instructions + "\n") if user_instructions else ""}
 
 Return ONLY the complete Python code with WORKFLOW_META in the docstring."""
 
