@@ -1255,6 +1255,11 @@ Return ONLY the Python code, no explanations. The code should be ready to save a
 
         param_yaml = "\n".join(param_yaml_lines)
 
+        # Build user instructions section (avoid backslash in f-string for Python < 3.12)
+        user_instructions_section = ""
+        if user_instructions:
+            user_instructions_section = "## USER INSTRUCTIONS\n\n" + user_instructions + "\n"
+
         prompt = f"""You are an expert Python automation developer. Generate a complete, production-ready Python workflow template.
 
 ## DOCUMENT ANALYSIS
@@ -1371,7 +1376,7 @@ def run(**kwargs):
 6. Return structured result dict
 7. Follow PEP 8 style guidelines
 
-{("## USER INSTRUCTIONS\n\n" + user_instructions + "\n") if user_instructions else ""}
+{user_instructions_section}
 
 ## OUTPUT
 
@@ -1398,6 +1403,11 @@ Return ONLY the complete Python code. No explanations, no markdown code blocks, 
             f"  - Table {t['index']}: {t['rows']} rows x {t['cols']} columns"
             for t in tables
         ])
+
+        # Build user instructions section (avoid backslash in f-string for Python < 3.12)
+        user_instructions_section = ""
+        if user_instructions:
+            user_instructions_section = "## USER INSTRUCTIONS\n\n" + user_instructions + "\n"
 
         prompt = f"""You are an expert Python automation developer. Generate a complete, production-ready Python workflow template.
 
@@ -1441,7 +1451,7 @@ Use DocumentHandler methods:
 - add_table(data, headers)
 - save(output_file)
 
-{("## USER INSTRUCTIONS\n\n" + user_instructions + "\n") if user_instructions else ""}
+{user_instructions_section}
 
 Return ONLY the complete Python code with WORKFLOW_META in the docstring."""
 
